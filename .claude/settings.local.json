@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gradle:*)",
+      "Read(//c/Users/oscar/Downloads/ic_launcher-68ddf74ae834d/ic_launcher-68ddf74ae834d/android/values/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
