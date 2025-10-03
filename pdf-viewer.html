@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Viewer - Mobile & Desktop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>PDF Viewer</title>
     <style>
         * {
             margin: 0;
@@ -13,182 +15,223 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f7;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
+        /* Mobile-first header */
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            padding: 12px 16px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .title {
-            font-size: 1.5rem;
+            font-size: 18px;
             font-weight: 600;
-            color: #333;
+            color: #1d1d1f;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .title svg {
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
         }
 
+        /* Mobile controls - stacked vertically */
         .controls {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
+            width: 100%;
         }
 
         .file-input-label {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #0071e3;
             color: white;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 500;
-            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            font-size: 16px;
+            transition: background 0.2s;
+            border: none;
         }
 
-        .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .file-input-label:active {
+            background: #0077ed;
         }
 
         #file-input {
-            position: absolute;
-            left: -9999px;
+            display: none;
         }
 
-        .btn {
-            padding: 8px 16px;
+        /* Mobile navigation - full width buttons */
+        .navigation {
+            display: none;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .navigation.active {
+            display: flex;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
             background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            border-radius: 6px;
+            border: 1px solid #d2d2d7;
+            color: #1d1d1f;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.3s;
-            font-size: 14px;
+            font-size: 15px;
+            transition: all 0.2s;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
+        .nav-btn:active:not(:disabled) {
+            background: #f5f5f7;
+            transform: scale(0.98);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
+        .nav-btn:disabled {
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
-        .btn-group {
+        .page-info {
             display: flex;
-            gap: 5px;
             align-items: center;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            justify-content: center;
+            padding: 12px;
+            background: #f5f5f7;
+            border-radius: 10px;
+            font-weight: 500;
+            color: #1d1d1f;
+            font-size: 15px;
+            white-space: nowrap;
         }
 
+        /* Mobile zoom controls */
         .zoom-controls {
+            display: none;
+            gap: 8px;
+        }
+
+        .zoom-controls.active {
             display: flex;
-            align-items: center;
-            gap: 10px;
+        }
+
+        .zoom-btn {
+            flex: 1;
+            padding: 12px;
             background: white;
-            padding: 5px 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d2d2d7;
+            color: #1d1d1f;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:active {
+            background: #f5f5f7;
+            transform: scale(0.98);
         }
 
         .zoom-label {
-            font-weight: 500;
-            color: #333;
-            min-width: 50px;
+            padding: 12px;
+            background: #f5f5f7;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #1d1d1f;
             text-align: center;
+            min-width: 70px;
         }
 
-        .page-info {
-            background: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
+        /* Viewer container - mobile optimized */
         .viewer-container {
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 16px;
             overflow: auto;
-            position: relative;
+            -webkit-overflow-scrolling: touch;
         }
 
         #pdf-canvas {
             max-width: 100%;
             height: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             background: white;
+            display: block;
         }
 
         .welcome-message {
             text-align: center;
-            color: white;
-            padding: 40px;
-            max-width: 500px;
+            color: #1d1d1f;
+            padding: 40px 20px;
+            max-width: 400px;
+        }
+
+        .welcome-message svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
         }
 
         .welcome-message h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
+            font-size: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .welcome-message p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            line-height: 1.6;
+            font-size: 16px;
+            color: #86868b;
+            line-height: 1.5;
         }
 
         .loading {
             text-align: center;
-            color: white;
-            font-size: 1.2rem;
+            color: #1d1d1f;
+            padding: 40px 20px;
         }
 
         .loading-spinner {
             display: inline-block;
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid #e5e5e7;
             border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 10px;
+            border-top-color: #0071e3;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
         }
 
         @keyframes spin {
@@ -196,108 +239,202 @@
         }
 
         .error-message {
-            background: #ff4757;
+            background: #ff3b30;
             color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
+            padding: 16px 20px;
+            border-radius: 10px;
             margin: 20px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+            font-size: 15px;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding: 10px;
+        /* Desktop styles - 768px and up */
+        @media (min-width: 768px) {
+            .header-content {
+                padding: 16px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
 
             .title {
-                font-size: 1.2rem;
-                width: 100%;
-                justify-content: center;
+                font-size: 20px;
+                margin-bottom: 0;
+            }
+
+            .title svg {
+                width: 28px;
+                height: 28px;
             }
 
             .controls {
-                width: 100%;
-                justify-content: center;
+                flex-direction: row;
+                gap: 12px;
+                align-items: center;
+                flex-wrap: wrap;
             }
 
-            .btn-group, .zoom-controls {
-                transform: scale(0.9);
+            .file-input-wrapper {
+                width: auto;
             }
 
-            .viewer-container {
-                padding: 10px;
+            .file-input-label {
+                width: auto;
+                padding: 10px 24px;
+                font-size: 15px;
             }
 
-            .welcome-message h2 {
-                font-size: 1.5rem;
+            .file-input-label:hover {
+                background: #0077ed;
             }
 
-            .welcome-message p {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .btn {
-                padding: 6px 12px;
-                font-size: 12px;
+            .file-input-label:active {
+                transform: scale(0.98);
             }
 
-            .zoom-controls {
-                flex-direction: column;
-                gap: 5px;
+            .navigation {
+                width: auto;
+            }
+
+            .nav-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .nav-btn:hover:not(:disabled) {
+                background: #f5f5f7;
+                border-color: #86868b;
+            }
+
+            .nav-btn:active:not(:disabled) {
+                transform: scale(0.95);
             }
 
             .page-info {
+                padding: 10px 16px;
                 font-size: 14px;
-                padding: 6px 12px;
+            }
+
+            .zoom-controls {
+                width: auto;
+            }
+
+            .zoom-btn {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+
+            .zoom-btn:hover {
+                background: #f5f5f7;
+                border-color: #86868b;
+            }
+
+            .zoom-btn:active {
+                transform: scale(0.95);
+            }
+
+            .zoom-label {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .viewer-container {
+                padding: 24px;
+            }
+
+            .welcome-message {
+                padding: 60px 40px;
+                max-width: 600px;
+            }
+
+            .welcome-message svg {
+                width: 100px;
+                height: 100px;
+            }
+
+            .welcome-message h2 {
+                font-size: 32px;
+            }
+
+            .welcome-message p {
+                font-size: 17px;
+            }
+        }
+
+        /* Large desktop - 1200px and up */
+        @media (min-width: 1200px) {
+            .header-content {
+                padding: 20px 32px;
+            }
+
+            .title {
+                font-size: 22px;
+            }
+
+            .viewer-container {
+                padding: 32px;
+            }
+        }
+
+        /* Touch optimizations for mobile */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-btn,
+            .zoom-btn,
+            .file-input-label {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="title">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 18H17V16H7V18Z" fill="#667eea"/>
-                <path d="M17 14H7V12H17V14Z" fill="#667eea"/>
-                <path d="M7 10H11V8H7V10Z" fill="#667eea"/>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C4.34315 2 3 3.34315 3 5V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9C21 8.73478 20.8946 8.48043 20.7071 8.29289L14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2H6ZM14 4H6C5.44772 4 5 4.44772 5 5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V9H15C14.4477 9 14 8.55228 14 8V4Z" fill="#667eea"/>
-            </svg>
-            PDF Viewer
-        </div>
-
-        <div class="controls">
-            <div class="file-input-wrapper">
-                <label for="file-input" class="file-input-label">
-                    Choose PDF File
-                </label>
-                <input type="file" id="file-input" accept=".pdf" />
+        <div class="header-content">
+            <div class="title">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 18H17V16H7V18Z" fill="#0071e3"/>
+                    <path d="M17 14H7V12H17V14Z" fill="#0071e3"/>
+                    <path d="M7 10H11V8H7V10Z" fill="#0071e3"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C4.34315 2 3 3.34315 3 5V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9C21 8.73478 20.8946 8.48043 20.7071 8.29289L14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2H6ZM14 4H6C5.44772 4 5 4.44772 5 5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V9H15C14.4477 9 14 8.55228 14 8V4Z" fill="#0071e3"/>
+                </svg>
+                <span>PDF Viewer</span>
             </div>
 
-            <div class="btn-group" id="navigation" style="display: none;">
-                <button class="btn" id="prev-page">← Previous</button>
-                <span class="page-info">
-                    Page <span id="page-num">1</span> of <span id="page-count">1</span>
-                </span>
-                <button class="btn" id="next-page">Next →</button>
-            </div>
+            <div class="controls">
+                <div class="file-input-wrapper">
+                    <label for="file-input" class="file-input-label">
+                        Choose PDF
+                    </label>
+                    <input type="file" id="file-input" accept=".pdf" />
+                </div>
 
-            <div class="zoom-controls" id="zoom-controls" style="display: none;">
-                <button class="btn" id="zoom-out">−</button>
-                <span class="zoom-label" id="zoom-level">100%</span>
-                <button class="btn" id="zoom-in">+</button>
-                <button class="btn" id="zoom-fit">Fit</button>
+                <div class="navigation" id="navigation">
+                    <button class="nav-btn" id="prev-page">← Prev</button>
+                    <div class="page-info">
+                        <span id="page-num">1</span> / <span id="page-count">1</span>
+                    </div>
+                    <button class="nav-btn" id="next-page">Next →</button>
+                </div>
+
+                <div class="zoom-controls" id="zoom-controls">
+                    <button class="zoom-btn" id="zoom-out">−</button>
+                    <div class="zoom-label" id="zoom-level">100%</div>
+                    <button class="zoom-btn" id="zoom-in">+</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="viewer-container" id="viewer">
         <div class="welcome-message">
-            <h2>Welcome to PDF Viewer</h2>
-            <p>Upload a PDF file to get started. This viewer works seamlessly on both mobile and desktop browsers with touch support and responsive controls.</p>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 18H17V16H7V18Z" fill="currentColor"/>
+                <path d="M17 14H7V12H17V14Z" fill="currentColor"/>
+                <path d="M7 10H11V8H7V10Z" fill="currentColor"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C4.34315 2 3 3.34315 3 5V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9C21 8.73478 20.8946 8.48043 20.7071 8.29289L14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2H6ZM14 4H6C5.44772 4 5 4.44772 5 5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V9H15C14.4477 9 14 8.55228 14 8V4Z" fill="currentColor"/>
+            </svg>
+            <h2>View Your PDFs</h2>
+            <p>Upload a document to get started. Works on phone, tablet, and desktop.</p>
         </div>
     </div>
 
@@ -323,10 +460,20 @@
         const pageCountSpan = document.getElementById('page-count');
         const zoomInBtn = document.getElementById('zoom-in');
         const zoomOutBtn = document.getElementById('zoom-out');
-        const zoomFitBtn = document.getElementById('zoom-fit');
         const zoomLevelSpan = document.getElementById('zoom-level');
         const navigationControls = document.getElementById('navigation');
         const zoomControls = document.getElementById('zoom-controls');
+
+        // Detect device type
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+        // Adjust scale for mobile
+        function getOptimalScale() {
+            if (isMobile) {
+                return 1.5; // Better readability on mobile
+            }
+            return 1.0;
+        }
 
         // Render the page
         function renderPage(num) {
@@ -398,20 +545,14 @@
 
         // Zoom functions
         function zoomIn() {
-            scale = Math.min(scale * 1.2, 3.0);
+            scale = Math.min(scale * 1.25, 4.0);
             zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
             queueRenderPage(pageNum);
         }
 
         function zoomOut() {
-            scale = Math.max(scale / 1.2, 0.3);
+            scale = Math.max(scale / 1.25, 0.5);
             zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
-            queueRenderPage(pageNum);
-        }
-
-        function zoomFit() {
-            scale = 1.0;
-            zoomLevelSpan.textContent = '100%';
             queueRenderPage(pageNum);
         }
 
@@ -424,7 +565,7 @@
                 return;
             }
 
-            viewer.innerHTML = '<div class="loading"><div class="loading-spinner"></div><br>Loading PDF...</div>';
+            viewer.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Loading PDF...</div></div>';
 
             const fileReader = new FileReader();
 
@@ -434,19 +575,19 @@
                 pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
                     pdfDoc = pdf;
                     pageCountSpan.textContent = pdf.numPages;
-                    navigationControls.style.display = 'flex';
-                    zoomControls.style.display = 'flex';
+                    navigationControls.classList.add('active');
+                    zoomControls.classList.add('active');
 
-                    // Reset to first page
+                    // Reset to first page with optimal scale
                     pageNum = 1;
-                    scale = 1.0;
-                    zoomLevelSpan.textContent = '100%';
+                    scale = getOptimalScale();
+                    zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
 
                     renderPage(pageNum);
                 }).catch(function(error) {
                     viewer.innerHTML = '<div class="error-message">Error loading PDF: ' + error.message + '</div>';
-                    navigationControls.style.display = 'none';
-                    zoomControls.style.display = 'none';
+                    navigationControls.classList.remove('active');
+                    zoomControls.classList.remove('active');
                 });
             };
 
@@ -458,28 +599,31 @@
         nextButton.addEventListener('click', onNextPage);
         zoomInBtn.addEventListener('click', zoomIn);
         zoomOutBtn.addEventListener('click', zoomOut);
-        zoomFitBtn.addEventListener('click', zoomFit);
 
-        // Keyboard navigation
+        // Keyboard navigation (desktop)
         document.addEventListener('keydown', function(e) {
             if (!pdfDoc) return;
 
             switch(e.key) {
                 case 'ArrowLeft':
+                case 'ArrowUp':
                     onPrevPage();
+                    e.preventDefault();
                     break;
                 case 'ArrowRight':
+                case 'ArrowDown':
                     onNextPage();
+                    e.preventDefault();
                     break;
                 case '+':
                 case '=':
                     zoomIn();
+                    e.preventDefault();
                     break;
                 case '-':
+                case '_':
                     zoomOut();
-                    break;
-                case '0':
-                    zoomFit();
+                    e.preventDefault();
                     break;
             }
         });
@@ -487,24 +631,30 @@
         // Touch gestures for mobile
         let touchStartX = 0;
         let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
 
         viewer.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
-        }, false);
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
 
         viewer.addEventListener('touchend', function(e) {
             touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
             handleSwipe();
-        }, false);
+        }, { passive: true });
 
         function handleSwipe() {
             if (!pdfDoc) return;
 
             const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
+            const diffX = touchStartX - touchEndX;
+            const diffY = Math.abs(touchStartY - touchEndY);
 
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
+            // Only trigger swipe if horizontal movement is greater than vertical
+            if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > diffY) {
+                if (diffX > 0) {
                     // Swipe left - next page
                     onNextPage();
                 } else {
@@ -538,7 +688,7 @@
                 );
 
                 const pinchRatio = currentPinchDistance / initialPinchDistance;
-                scale = Math.min(Math.max(currentScale * pinchRatio, 0.3), 3.0);
+                scale = Math.min(Math.max(currentScale * pinchRatio, 0.5), 4.0);
                 zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
             }
         }, { passive: false });
@@ -548,7 +698,7 @@
                 initialPinchDistance = 0;
                 queueRenderPage(pageNum);
             }
-        });
+        }, { passive: true });
     </script>
 </body>
 </html>
