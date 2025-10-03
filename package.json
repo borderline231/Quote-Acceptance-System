@@ -1,0 +1,15 @@
+{
+  "name": "pdf-viewer",
+  "version": "1.0.0",
+  "description": "Simple PDF viewer for mobile and desktop",
+  "main": "simple-server.js",
+  "scripts": {
+    "start": "node simple-server.js"
+  },
+  "keywords": ["pdf", "viewer"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.x"
+  }
+}
